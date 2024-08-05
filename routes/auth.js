@@ -8,6 +8,13 @@ const myEventEmitter = require('../services/logEvents.js');
 // const { addLogin, getLoginByUsername } = require('../services/p.auth.dal')
 const { addLogin, getLoginByUsername } = require('../services/m.auth.dal')
 
+function checkLoginStatus(req, res, next) {
+    res.locals.user = req.session.user || null;
+    next();
+}
+
+router.use(checkLoginStatus);
+
 router.get('/', async (req, res) => {
     if(DEBUG) console.log('login page: ');
     res.render('login', {status: req.session.status});
@@ -30,6 +37,10 @@ router.post('/', async (req, res) => {
         if( await bcrypt.compare(req.body.password, hashedPassword)) {
           console.log("Check One")
             const token = jwt.sign({ username: user.username }, process.env.JWT_SECRET, { expiresIn: '10m' });
+            req.session.user = user;  // Ensure this line is correct
+            console.log("Session after login:", req.session.user);  // Add this line for debugging
+            res.redirect('/');
+            return;
             if(DEBUG) {
                 console.log('\n');
                 console.log('Copy and paste the following curl command to test the API.');

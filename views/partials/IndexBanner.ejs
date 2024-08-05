@@ -1,7 +1,23 @@
 <section id="Banner">
     <img src="/images/surya-urs-8YZe_V0Bn_o-unsplash.jpg" alt="">
-    <h2>Looking for a Vinyl?</h2>
+    <h2>Looking for a Vinyl?<% if (!user) { %> <br>
+    Log in to search<% } %></h2>
     <form action="">
-        <input type="text" placeholder="Search For Vinyls" id="Search">            
+        <h3>Log in to search</h3>
+        <input type="text" placeholder="Search For Vinyls" id="Search" <%= !user ? 'disabled' : '' %> >            
     </form>
+    <style>
+        /* Optionally, add other styles to match the non-disabled appearance */
+        input#Search {
+            border: 1px solid #ccc;
+            padding: 10px;
+            font-size: 16px;
+        }
+        input#Search:disabled {
+    opacity: 1; /* Override the default opacity */
+    background-color: white; /* Ensure the background color stays the same */
+    cursor: not-allowed; /* Show a 'not allowed' cursor */
+}
+    </style>
 </section>
+

@@ -7,6 +7,7 @@ const app = express();
 const session = require("express-session");
 const apiRouter = require("./routes/api/index");
 const myEventEmitter = require("./services/logEvents.js");
+const { connect } = require("./services/m.db");
 
 app.use("/api", apiRouter);
 
@@ -18,12 +19,27 @@ app.use(express.static("public"));
 app.use(express.urlencoded({ extended: true }));
 app.use(
   session({
-    secret:
-      process.env.SESSION_SECRET || "kstoyles@cluster0.ufay3sq.mongodb.net",
+    secret: process.env.SESSION_SECRET || "default_secret",
     resave: false,
     saveUninitialized: false,
   })
 );
+
+connect().then(() => {
+  app.listen(PORT, (err) => {
+    if (err) console.log(err);
+    myEventEmitter.emit(
+      "event",
+      "app.listen",
+      "SUCCESS",
+      "http search site successfully started."
+    );
+    console.log(`Simple app running on port ${PORT}.`);
+  });
+}).catch(err => {
+  console.error('Failed to connect to the database. Exiting now...', err);
+  process.exit(1);
+});
 
 app.listen(PORT, (err) => {
   if (err) console.log(err);
@@ -36,6 +52,9 @@ app.listen(PORT, (err) => {
   console.log(`Simple app running on port ${PORT}.`);
 });
 
+const authRouter = require("./routes/auth");
+app.use("/auth", authRouter);
+
 app.get("/", async (req, res) => {
   myEventEmitter.emit(
     "event",
@@ -44,11 +63,12 @@ app.get("/", async (req, res) => {
     "landing page (index.ejs) was displayed."
   );
   const user = req.session.user;
-  res.render("index", { 
-    user: user ? user.username : 'Guest',
-    status: req.session.status
+  res.render("index", {
+    user: user ? user.username : "Guest",
+    status: req.session.status,
   });
 });
+
 
 app.get("/about", async (req, res) => {
   myEventEmitter.emit(
@@ -62,9 +82,6 @@ app.get("/about", async (req, res) => {
 
 const searchRouter = require("./routes/search");
 app.use("/search", searchRouter);
-
-const authRouter = require("./routes/auth");
-app.use("/auth", authRouter);
 
 app.use((req, res) => {
   res.status(404).render("404", { status: req.session.status });
